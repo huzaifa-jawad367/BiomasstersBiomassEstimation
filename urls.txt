@@ -1,0 +1,6 @@
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_features_splits.z01?download=true
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_features_splits.z02?download=true
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_features_splits.z03?download=true
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_features_splits.z04?download=true
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_features_splits.zip?download=true
+https://huggingface.co/datasets/nascetti-a/BioMassters/resolve/main/test_agbm.tar?download=true
