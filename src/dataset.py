@@ -135,7 +135,7 @@ def predict_tta(models, images, masks, ntta=1):
         if ntta == 2:
             # hflip
             logits = model(torch.flip(images, dims=[-1]), masks)
-            result += torch.flip(logits, dims=[-1])
+            result += torch.flip(logits, dims=[-1]) 
             n += 1
 
         if ntta == 3:
