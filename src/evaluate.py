@@ -38,10 +38,26 @@ def save_image(file_name):
     print(f"Biomass raster map ground truth saved as {output_file_gt}")
     print(f"Biomass raster map saved as {output_file_pred}")
 
-def calculate_rmse(LIST_OF_GT):
+def evaluate_rmse_mae(LIST_OF_GT):
+    
+    norm_val = 256 * 256 * len(LIST_OF_GT)
+    rmse = 0
+    mae = 0
+
     for f in LIST_OF_GT:
         with Image.open(f"data/test_agbm/{f}") as img:
             raster_gt = np.array(img)
-        with Image.open(f"pred/{f}") as img:
+        with Image.open(f"preds/{f}") as img:
             raster_pred = np.array(img)
-    
+
+        rmse += np.sum(np.square(np.subtract(raster_gt, raster_pred)))
+        mae += np.sum(np.abs(np.subtract(raster_gt, raster_pred)))
+
+    rmse = np.sqrt(rmse/norm_val)
+    mae = mae / norm_val
+
+    return rmse, mae
+
+rmse, mae = evaluate_rmse_mae(LIST_OF_FILES)
+print(f"Root Mean Square Error: {rmse}")
+print(f"Mean Absolute Error: {mae}")
