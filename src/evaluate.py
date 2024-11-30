@@ -40,7 +40,8 @@ def save_image(file_name):
 
 def evaluate_rmse_mae(LIST_OF_GT):
     
-    norm_val = 256 * 256 * len(LIST_OF_GT)
+    norm_val = 256 * 256
+    m = len(LIST_OF_GT)
     rmse = 0
     mae = 0
 
@@ -53,8 +54,8 @@ def evaluate_rmse_mae(LIST_OF_GT):
         rmse += np.sum(np.square(np.subtract(raster_gt, raster_pred)))
         mae += np.sum(np.abs(np.subtract(raster_gt, raster_pred)))
 
-    rmse = np.sqrt(rmse/norm_val)
-    mae = mae / norm_val
+    rmse = np.sqrt(rmse/(norm_val*m))
+    mae = mae / (norm_val*m)
 
     return rmse, mae
 

@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 import torch
 from skimage import io
-
+import pandas as pd
+from pathlib import Path
 
 s1_min = np.array([-25 , -62 , -25, -60], dtype="float32")
 s1_max = np.array([ 29 ,  28,  30,  22 ], dtype="float32")
@@ -18,7 +19,9 @@ s2_max = np.array(
 IMG_SIZE = (256, 256)
 
 
-def read_imgs(chip_id, data_dir):
+def read_imgs(chip_id, data_dir, veg_indices=False):
+    # Ensure data_dir is a Path object
+    data_dir = Path(data_dir) if isinstance(data_dir, str) else data_dir
     imgs, mask = [], []
     for month in range(12):
         img_s1 = io.imread(data_dir / f"{chip_id}_S1_{month:0>2}.tif")
@@ -26,11 +29,13 @@ def read_imgs(chip_id, data_dir):
         img_s1 = img_s1.astype("float32")
         img_s1 = (img_s1 - s1_min) / s1_mm
         img_s1 = np.where(m, 0, img_s1)
+        print(f"running the read image function. and the image shape is: {img_s1.shape} for month {month}")
         filepath = data_dir / f"{chip_id}_S2_{month:0>2}.tif"
         if filepath.is_file():
             img_s2 = io.imread(filepath)
             img_s2 = img_s2.astype("float32")
             img_s2 = img_s2 / s2_max
+            print(f"sentinel 2 image: {img_s2.shape}")
         else:
             img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
 
@@ -77,7 +82,7 @@ def train_aug(imgs, mask, target):
         #if random.random() > 0.2:
         angle = random.randint(0, 90) - 45
 
-        if (angle != 0):# or (scale != 1):
+        if (angle != 0): # or (scale != 1):
             t = len(imgs)  # t, c, h, w
             imgs = np.concatenate(imgs, axis=0)  # t*c, h, w
             imgs = np.transpose(imgs, (1, 2, 0))  # h, w, t*c
@@ -100,11 +105,12 @@ def train_aug(imgs, mask, target):
 
 
 class DS(torch.utils.data.Dataset):
-    def __init__(self, df, dir_features, dir_labels=None, augs=False):
+    def __init__(self, df, dir_features, dir_labels=None, augs=False, veg_indices=False):
         self.df = df
         self.dir_features = dir_features
         self.dir_labels = dir_labels
         self.augs = augs
+        self.veg_indices = veg_indices
 
     def __len__(self):
         return len(self.df)
@@ -112,11 +118,14 @@ class DS(torch.utils.data.Dataset):
     def __getitem__(self, index):
         item = self.df.iloc[index]
 
-        imgs, mask = read_imgs(item.chip_id, self.dir_features)
+        imgs, mask = read_imgs(item.chip_id, self.dir_features, self.veg_indices)
         if self.dir_labels is not None:
             target = io.imread(self.dir_labels / f'{item.chip_id}_agbm.tif')
         else:
             target = item.chip_id
+
+        # if self.veg_indices:
+        #     print(imgs.shape)
 
         if self.augs:
             imgs, mask, target = train_aug(imgs, mask, target)
@@ -153,3 +162,20 @@ def predict_tta(models, images, masks, ntta=1):
     result /= n * len(models)
 
     return result
+
+if __name__ == "__main__":
+    df = pd.read_csv("data/features_metadata.csv")
+    test_df = df[df.split == "test"].copy()
+    test_df = test_df.groupby("chip_id").agg(list).reset_index()
+    print(test_df)
+
+    test_images_dir = 'data/test_features'
+    test_dataset = DS(
+        df=test_df,
+        dir_features=test_images_dir,
+        veg_indices=True
+    )
+
+    for idx in range(len(test_dataset)):
+        imgs, masks, target = test_dataset[idx]
+        print(f"Data at index {idx}:", imgs.shape)
