@@ -51,11 +51,11 @@ def evaluate_rmse_mae(LIST_OF_GT):
         with Image.open(f"preds/{f}") as img:
             raster_pred = np.array(img)
 
-        rmse += np.sum(np.square(np.subtract(raster_gt, raster_pred)))
-        mae += np.sum(np.abs(np.subtract(raster_gt, raster_pred)))
+        rmse += np.sqrt(np.sum(np.square(np.subtract(raster_gt, raster_pred)))/norm_val)
+        mae += np.sum(np.abs(np.subtract(raster_gt, raster_pred)))/norm_val
 
-    rmse = np.sqrt(rmse/(norm_val*m))
-    mae = mae / (norm_val*m)
+    rmse /= m
+    mae /= m
 
     return rmse, mae
 

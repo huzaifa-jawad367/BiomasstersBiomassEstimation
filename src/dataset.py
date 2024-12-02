@@ -7,6 +7,10 @@ from skimage import io
 import pandas as pd
 from pathlib import Path
 
+
+
+L = 0.5
+
 s1_min = np.array([-25 , -62 , -25, -60], dtype="float32")
 s1_max = np.array([ 29 ,  28,  30,  22 ], dtype="float32")
 s1_mm = s1_max - s1_min
@@ -17,6 +21,51 @@ s2_max = np.array(
 )
 
 IMG_SIZE = (256, 256)
+
+epsilon = 1e-6  # Small constant to avoid division by zero
+
+def calculate_veg_indices_uint8(img_s2):
+    """
+    Calculate vegetation indices and convert them to uint8.
+    Args:
+        img_s2 (np.ndarray): Sentinel-2 image array (H, W, Bands)
+    
+    Returns:
+        dict: A dictionary of vegetation indices scaled to uint8
+    """
+    # Calculate vegetation indices
+    ndvi = (img_s2[:, :, 6] - img_s2[:, :, 2]) / (img_s2[:, :, 6] + img_s2[:, :, 2] + epsilon)
+    evi = (2.5 * (img_s2[:, :, 6] - img_s2[:, :, 2])) / (
+        img_s2[:, :, 6] + 6 * img_s2[:, :, 2] - 7.5 * img_s2[:, :, 0] + 1 + epsilon
+    )
+    savi = ((img_s2[:, :, 6] - img_s2[:, :, 2]) * (1 + 0.5)) / (img_s2[:, :, 6] + img_s2[:, :, 2] + 0.5 + epsilon)
+    msavi = 0.5 * (
+        2 * img_s2[:, :, 6] + 1 - np.sqrt(
+            np.square(2 * img_s2[:, :, 6] + 1) - 8 * (img_s2[:, :, 6] - img_s2[:, :, 2]) + epsilon
+        )
+    )
+    ndmi = (img_s2[:, :, 6] - img_s2[:, :, 7]) / (img_s2[:, :, 6] + img_s2[:, :, 7] + epsilon)
+    nbr = (img_s2[:, :, 6] - img_s2[:, :, 8]) / (img_s2[:, :, 6] + img_s2[:, :, 8] + epsilon)
+    nbr2 = (img_s2[:, :, 7] - img_s2[:, :, 8]) / (img_s2[:, :, 7] + img_s2[:, :, 8] + epsilon)
+
+    # Normalize indices to [0, 255] and convert to uint8
+    def normalize_and_convert(index):
+        index_normalized = (index + 1) / 2  # Scale [-1, 1] to [0, 1]
+        index_uint8 = (index_normalized * 255).clip(0, 255).astype("uint8")  # Scale to [0, 255] and convert to uint8
+        return index_uint8
+
+    # Create a dictionary of uint8 vegetation indices
+    indices_uint8 = {
+        "ndvi": normalize_and_convert(ndvi),
+        "evi": normalize_and_convert(evi),
+        "savi": normalize_and_convert(savi),
+        "msavi": normalize_and_convert(msavi),
+        "ndmi": normalize_and_convert(ndmi),
+        "nbr": normalize_and_convert(nbr),
+        "nbr2": normalize_and_convert(nbr2),
+    }
+
+    return indices_uint8
 
 
 def read_imgs(chip_id, data_dir, veg_indices=False):
@@ -34,10 +83,18 @@ def read_imgs(chip_id, data_dir, veg_indices=False):
         if filepath.is_file():
             img_s2 = io.imread(filepath)
             img_s2 = img_s2.astype("float32")
-            img_s2 = img_s2 / s2_max
+
+            if veg_indices:
+                veg_indices_uint8 = calculate_veg_indices_uint8(img_s2)
+                for index_name, index_array in veg_indices_uint8.items():
+                    index_array = np.expand_dims(index_array, axis=2)
+                    img_s2 = np.concatenate([img_s2, index_array], axis=2)
+                    print(f"{index_name} shape: {index_array.shape}, dtype: {index_array.dtype}")
+
+            # img_s2 = img_s2 / s2_max
             print(f"sentinel 2 image: {img_s2.shape}")
         else:
-            img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
+            img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
 
         img = np.concatenate([img_s1, img_s2], axis=2)
         img = np.transpose(img, (2, 0, 1))
@@ -124,9 +181,6 @@ class DS(torch.utils.data.Dataset):
         else:
             target = item.chip_id
 
-        # if self.veg_indices:
-        #     print(imgs.shape)
-
         if self.augs:
             imgs, mask, target = train_aug(imgs, mask, target)
 
@@ -179,3 +233,5 @@ if __name__ == "__main__":
     for idx in range(len(test_dataset)):
         imgs, masks, target = test_dataset[idx]
         print(f"Data at index {idx}:", imgs.shape)
+
+        
