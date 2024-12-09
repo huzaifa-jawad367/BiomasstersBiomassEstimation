@@ -3,9 +3,9 @@
 
 set -eu  # o pipefail
 
-GPU=${GPU:-0, 1}
+GPU=${GPU:-0, 1, 2}
 PORT=${PORT:-29500}
-N_GPUS=${N_GPUS:-1} # change to your number of GPUs
+N_GPUS=${N_GPUS:-3} # change to your number of GPUs
 
 OPTIM=adamw
 LR=0.001
@@ -14,7 +14,7 @@ WD=0.01
 SCHEDULER=cosa
 MODE=epoch
 
-N_EPOCHS=20
+N_EPOCHS=30
 T_MAX=20
 loss=nrmse
 attn=scse
@@ -25,7 +25,7 @@ backbone=tf_efficientnetv2_l_in21k
 BS=4
 FOLD=0
 
-CHECKPOINT=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7
+CHECKPOINT=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_Defualt_config
 MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="${N_GPUS}" \
     ./src/train.py \
         --train-df $data_dir/features_metadata.csv \

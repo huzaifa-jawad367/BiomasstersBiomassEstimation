@@ -1,6 +1,9 @@
 the-biomassters
 preds/*
+pred2/*
 data/*
 models/*
 reports/
 models.zip
+models_training/
+src/__pycache__

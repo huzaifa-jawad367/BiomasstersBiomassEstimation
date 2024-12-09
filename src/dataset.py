@@ -15,8 +15,13 @@ s1_min = np.array([-25 , -62 , -25, -60], dtype="float32")
 s1_max = np.array([ 29 ,  28,  30,  22 ], dtype="float32")
 s1_mm = s1_max - s1_min
 
+# s2_max = np.array(
+#     [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 1., 1., 1., 1., 1., 1., 1., 255.],
+#     dtype="float32",
+# )
+
 s2_max = np.array(
-    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226.,   255.],
+    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 255.],
     dtype="float32",
 )
 
@@ -78,23 +83,28 @@ def read_imgs(chip_id, data_dir, veg_indices=False):
         img_s1 = img_s1.astype("float32")
         img_s1 = (img_s1 - s1_min) / s1_mm
         img_s1 = np.where(m, 0, img_s1)
-        print(f"running the read image function. and the image shape is: {img_s1.shape} for month {month}")
         filepath = data_dir / f"{chip_id}_S2_{month:0>2}.tif"
         if filepath.is_file():
             img_s2 = io.imread(filepath)
             img_s2 = img_s2.astype("float32")
 
+            main_channels = img_s2[:, :, :-1]
+            transparency_channel = img_s2[:, :, -1:]
+
             if veg_indices:
                 veg_indices_uint8 = calculate_veg_indices_uint8(img_s2)
+                img_s2 = main_channels
                 for index_name, index_array in veg_indices_uint8.items():
                     index_array = np.expand_dims(index_array, axis=2)
                     img_s2 = np.concatenate([img_s2, index_array], axis=2)
-                    print(f"{index_name} shape: {index_array.shape}, dtype: {index_array.dtype}")
 
-            # img_s2 = img_s2 / s2_max
-            print(f"sentinel 2 image: {img_s2.shape}")
+                img_s2 = np.concatenate([img_s2, transparency_channel], axis=2)
+
+            img_s2 = img_s2 / s2_max
+            
         else:
-            img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
+            # img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
+            img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
 
         img = np.concatenate([img_s1, img_s2], axis=2)
         img = np.transpose(img, (2, 0, 1))

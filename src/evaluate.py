@@ -7,6 +7,8 @@ import os
 
 LIST_OF_FILES = os.listdir('data/test_agbm')
 
+# def draw_difference_
+
 def save_image(file_name):
     pred_file = f"preds/{file_name}"  # Replace with your TIFF file path
     gt_file = f"data/test_agbm/{file_name}"
@@ -44,6 +46,7 @@ def evaluate_rmse_mae(LIST_OF_GT):
     m = len(LIST_OF_GT)
     rmse = 0
     mae = 0
+    mean_per_pix = 0
 
     for f in LIST_OF_GT:
         with Image.open(f"data/test_agbm/{f}") as img:
@@ -52,13 +55,16 @@ def evaluate_rmse_mae(LIST_OF_GT):
             raster_pred = np.array(img)
 
         rmse += np.sqrt(np.sum(np.square(np.subtract(raster_gt, raster_pred)))/norm_val)
+        mean_per_pix += np.mean(raster_gt)
         mae += np.sum(np.abs(np.subtract(raster_gt, raster_pred)))/norm_val
 
     rmse /= m
+    mean_per_pix /= m
     mae /= m
 
-    return rmse, mae
+    return rmse, mae, mean_per_pix
 
-rmse, mae = evaluate_rmse_mae(LIST_OF_FILES)
+rmse, mae, mpp = evaluate_rmse_mae(LIST_OF_FILES)
 print(f"Root Mean Square Error: {rmse}")
 print(f"Mean Absolute Error: {mae}")
+print(f"RMSE Percentage: {100*(rmse/mpp)}")
