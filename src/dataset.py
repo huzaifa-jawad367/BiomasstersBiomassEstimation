@@ -73,7 +73,7 @@ def calculate_veg_indices_uint8(img_s2):
     return indices_uint8
 
 
-def read_imgs(chip_id, data_dir, veg_indices=False):
+def read_imgs(chip_id, data_dir, veg_indices=False, s1_indices=False):
     # Ensure data_dir is a Path object
     data_dir = Path(data_dir) if isinstance(data_dir, str) else data_dir
     imgs, mask = [], []
@@ -101,6 +101,14 @@ def read_imgs(chip_id, data_dir, veg_indices=False):
                 img_s2 = np.concatenate([img_s2, transparency_channel], axis=2)
 
             img_s2 = img_s2 / s2_max
+            if s1_indices:
+                # Compute the difference between the first and second band (ascending index)
+                vv_vh_asc_1 = img_s1[:, :, 0] - img_s1[:, :, 1]
+                
+                # Compute the difference between the third and fourth band (descending index)
+                vv_vh_dsc_1 = img_s1[:, :, 2] - img_s1[:, :, 3]
+                # Concatenate the original image with the new indices along the last axis (axis=-1)
+                img_s1 = np.concatenate([img_s1, vv_vh_asc_1, vv_vh_dsc_1], axis=-1)
             
         else:
             # img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
