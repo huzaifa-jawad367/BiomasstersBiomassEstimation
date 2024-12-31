@@ -8,6 +8,8 @@ import pandas as pd
 from pathlib import Path
 
 
+import xarray as xr
+from xrspatial import multispectral
 
 L = 0.5
 
@@ -37,7 +39,7 @@ def calculate_veg_indices_uint8(img_s2):
     
     Returns:
         dict: A dictionary of vegetation indices scaled to uint8
-    """
+    
     # Calculate vegetation indices
     ndvi = (img_s2[:, :, 6] - img_s2[:, :, 2]) / (img_s2[:, :, 6] + img_s2[:, :, 2] + epsilon)
     evi = (2.5 * (img_s2[:, :, 6] - img_s2[:, :, 2])) / (
@@ -52,6 +54,33 @@ def calculate_veg_indices_uint8(img_s2):
     ndmi = (img_s2[:, :, 6] - img_s2[:, :, 7]) / (img_s2[:, :, 6] + img_s2[:, :, 7] + epsilon)
     nbr = (img_s2[:, :, 6] - img_s2[:, :, 8]) / (img_s2[:, :, 6] + img_s2[:, :, 8] + epsilon)
     nbr2 = (img_s2[:, :, 7] - img_s2[:, :, 8]) / (img_s2[:, :, 7] + img_s2[:, :, 8] + epsilon)
+
+    """
+    img_s2_xr = xr.DataArray(img_s2)
+
+    # Define epsilon to avoid division by zero
+    epsilon = 1e-6
+    
+    # NDVI - Normalized Difference Vegetation Index
+    ndvi = multispectral.ndvi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2])
+    
+    # EVI - Enhanced Vegetation Index
+    evi = multispectral.evi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2], img_s2_xr[:, :, 0])
+    
+    # SAVI - Soil-Adjusted Vegetation Index
+    savi = multispectral.savi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2])
+    
+    # MSAVI - Modified Soil-Adjusted Vegetation Index
+    msavi = multispectral.msavi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2])
+    
+    # NDMI - Normalized Difference Moisture Index
+    ndmi = multispectral.ndmi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 7])
+    
+    # NBR - Normalized Burn Ratio
+    nbr = multispectral.nbr(img_s2_xr[:, :, 6], img_s2_xr[:, :, 8])
+    
+    # NBR2 - Another variation of Normalized Burn Ratio
+    nbr2 = multispectral.nbr2(img_s2_xr[:, :, 7], img_s2_xr[:, :, 8])
 
     # Normalize indices to [0, 255] and convert to uint8
     def normalize_and_convert(index):
