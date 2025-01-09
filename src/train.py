@@ -586,7 +586,7 @@ def train(args):
         dir_features=train_images_dir,
         dir_labels=train_labels_dir,
         augs=args.augs,
-        veg_indices=False
+        veg_indices=True
     )
 
     if args.test_df is not None:
@@ -594,7 +594,7 @@ def train(args):
             df=test_df,
             dir_features=train_images_dir,
             dir_labels=train_labels_dir,
-            veg_indices=False
+            veg_indices=True
         )
         train_dataset = torch.utils.data.ConcatDataset([train_dataset, test_dataset])
 
@@ -602,7 +602,7 @@ def train(args):
         df=dev_df,
         dir_features=train_images_dir,
         dir_labels=train_labels_dir,
-        veg_indices=False
+        veg_indices=True
     )
 
     train_sampler = None

@@ -85,7 +85,7 @@ def main():
     test_dataset = dataset.DS(
         df=test_df,
         dir_features=test_images_dir,
-        veg_indices=True
+        # veg_indices=True
     )
     test_sampler = None
 

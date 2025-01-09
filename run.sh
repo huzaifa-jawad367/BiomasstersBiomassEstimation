@@ -3,9 +3,9 @@
 
 set -eu  # o pipefail
 
-GPU=${GPU:-0, 1, 2}
+GPU=${GPU:-0}
 PORT=${PORT:-29500}
-N_GPUS=${N_GPUS:-3} # change to your number of GPUs
+N_GPUS=${N_GPUS:-1} # change to your number of GPUs
 
 OPTIM=adamw
 LR=0.001
@@ -14,15 +14,15 @@ WD=0.01
 SCHEDULER=cosa
 MODE=epoch
 
-N_EPOCHS=30
-T_MAX=20
+N_EPOCHS=50
+T_MAX=50
 loss=nrmse
 attn=scse
 data_dir=./data
-chkps_dir=./models_training
+chkps_dir=./arch_exp
 
-backbone=tf_efficientnetv2_l_in21k
-BS=4
+backbone=convnext_large_in22k
+BS=2
 FOLD=0
 
 CHECKPOINT=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_Defualt_config
@@ -33,7 +33,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 15 \
+        --in-channels 22 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -51,8 +51,8 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
 
 
 LR=0.0001
-N_EPOCHS=100
-T_MAX=100
+N_EPOCHS=50
+T_MAX=50
 CHECKPOINT_LOAD=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7
 CHECKPOINT=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_plus800eb
 
@@ -63,7 +63,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 15 \
+        --in-channels 22 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -81,8 +81,8 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --fp16 \
 
 
-N_EPOCHS=100
-T_MAX=100
+N_EPOCHS=50
+T_MAX=50
 CHECKPOINT_LOAD=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_plus800eb
 CHECKPOINT=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_plus800eb_100ft
 MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="${N_GPUS}" \
@@ -92,7 +92,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 15 \
+        --in-channels 22 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -120,7 +120,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 15 \
+        --in-channels 22 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -131,7 +131,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --fold "${FOLD}" \
         --scheduler-mode "${MODE}" \
         --batch-size "${BS}" \
-        --load $CHECKPOINT_LOAD/model_last.pth \
+	--load $CHECKPOINT_LOAD/model_last.pth \
         --augs \
         --dec-attn-type $attn \
         --dec-channels 384 368 352 336 320 \
