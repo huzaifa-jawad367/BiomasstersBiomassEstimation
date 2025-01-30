@@ -8,6 +8,8 @@ import pandas as pd
 from pathlib import Path
 
 
+import xarray as xr
+from xrspatial import multispectral
 
 L = 0.5
 
@@ -15,15 +17,15 @@ s1_min = np.array([-25 , -62 , -25, -60], dtype="float32")
 s1_max = np.array([ 29 ,  28,  30,  22 ], dtype="float32")
 s1_mm = s1_max - s1_min
 
-# s2_max = np.array(
-#     [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 1., 1., 1., 1., 1., 1., 1., 255.],
-#     dtype="float32",
-# )
-
 s2_max = np.array(
-    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 255.],
+    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 1., 10316., 1., 8406., 1., 1., 1., 255.],
     dtype="float32",
 )
+
+# s2_max = np.array(
+#     [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 255.],
+#     dtype="float32",
+# )
 
 IMG_SIZE = (256, 256)
 
@@ -37,7 +39,7 @@ def calculate_veg_indices_uint8(img_s2):
     
     Returns:
         dict: A dictionary of vegetation indices scaled to uint8
-    """
+    
     # Calculate vegetation indices
     ndvi = (img_s2[:, :, 6] - img_s2[:, :, 2]) / (img_s2[:, :, 6] + img_s2[:, :, 2] + epsilon)
     evi = (2.5 * (img_s2[:, :, 6] - img_s2[:, :, 2])) / (
@@ -53,11 +55,43 @@ def calculate_veg_indices_uint8(img_s2):
     nbr = (img_s2[:, :, 6] - img_s2[:, :, 8]) / (img_s2[:, :, 6] + img_s2[:, :, 8] + epsilon)
     nbr2 = (img_s2[:, :, 7] - img_s2[:, :, 8]) / (img_s2[:, :, 7] + img_s2[:, :, 8] + epsilon)
 
+    """
+    img_s2_xr = xr.DataArray(img_s2)
+
+    # Define epsilon to avoid division by zero
+    epsilon = 1e-6
+    
+    # NDVI - Normalized Difference Vegetation Index
+    ndvi = np.array(multispectral.ndvi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2]))
+    
+    # EVI - Enhanced Vegetation Index
+    evi = np.array(multispectral.evi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2], img_s2_xr[:, :, 0]))
+    
+    # SAVI - Soil-Adjusted Vegetation Index
+    savi = np.array(multispectral.savi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2]))
+    
+    # # MSAVI - Modified Soil-Adjusted Vegetation Index
+    # msavi = multispectral.msavi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2])
+    msavi = 0.5 * (
+        2 * img_s2[:, :, 6] + 1 - np.sqrt(
+            np.square(2 * img_s2[:, :, 6] + 1) - 8 * (img_s2[:, :, 6] - img_s2[:, :, 2])
+        )
+    )
+    
+    # NDMI - Normalized Difference Moisture Index
+    ndmi = np.array(multispectral.ndmi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 7]))
+    
+    # NBR - Normalized Burn Ratio
+    nbr = np.array(multispectral.nbr(img_s2_xr[:, :, 6], img_s2_xr[:, :, 8]))
+    
+    # NBR2 - Another variation of Normalized Burn Ratio
+    nbr2 = np.array(multispectral.nbr2(img_s2_xr[:, :, 7], img_s2_xr[:, :, 8]))
+
     # Normalize indices to [0, 255] and convert to uint8
     def normalize_and_convert(index):
         index_normalized = (index + 1) / 2  # Scale [-1, 1] to [0, 1]
-        index_uint8 = (index_normalized * 255).clip(0, 255).astype("uint8")  # Scale to [0, 255] and convert to uint8
-        return index_uint8
+        # index_uint8 = (index_normalized * 255).clip(0, 255).astype("uint8")  # Scale to [0, 255] and convert to uint8
+        return index_normalized
 
     # Create a dictionary of uint8 vegetation indices
     indices_uint8 = {
@@ -95,16 +129,22 @@ def read_imgs(chip_id, data_dir, veg_indices=False):
                 veg_indices_uint8 = calculate_veg_indices_uint8(img_s2)
                 img_s2 = main_channels
                 for index_name, index_array in veg_indices_uint8.items():
+                    if np.isnan(index_array).any():
+                        index_array = np.nan_to_num(index_array, nan=0.0)
                     index_array = np.expand_dims(index_array, axis=2)
                     img_s2 = np.concatenate([img_s2, index_array], axis=2)
+                    # print(f"{index_name} max: {np.max(index_array)}, {np.count_nonzero(np.isnan(index_array))}")
 
                 img_s2 = np.concatenate([img_s2, transparency_channel], axis=2)
+                # print(f"Before Normalisation: {np.max(img_s2)}")
 
             img_s2 = img_s2 / s2_max
+
+            # print(f"After Normalisation: {np.max(img_s2)}")
             
         else:
-            # img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
-            img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
+            img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
+            # img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
 
         img = np.concatenate([img_s1, img_s2], axis=2)
         img = np.transpose(img, (2, 0, 1))

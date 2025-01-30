@@ -44,7 +44,7 @@ def parse_args(args=None):
         "--train-images-dir",
         type=str,
         help="path to train df",
-        default="./data/train_features",
+        default="./",
     )
     parser.add_argument(
         "--train-labels-dir",
@@ -672,6 +672,7 @@ def train(args):
         optimizer.load_state_dict(checkpoint["opt_state_dict"])
         scaler.load_state_dict(checkpoint["scaler"])
 
+    score = float("inf")
     for epoch in range(start_epoch, args.num_epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
@@ -744,6 +745,9 @@ def train(args):
                 # save_jit(model, args, checkpoint_dir / f"model_last_{epoch + 1}.pt")
 
         torch.cuda.empty_cache()
+
+    if local_rank != 0:
+        score = float("inf")
 
     if local_rank == 0:
         summary_writer.close()
