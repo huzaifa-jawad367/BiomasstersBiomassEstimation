@@ -5,7 +5,7 @@ data/*
 models/*
 reports/
 models.zip
-models_training/
 pred_50ep/
 arch_exp/
 src/__pycache__
+vmunetv2/

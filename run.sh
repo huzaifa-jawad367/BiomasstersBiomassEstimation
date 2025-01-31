@@ -4,7 +4,7 @@
 set -eu  # o pipefail
 
 GPU=${GPU:-0}
-PORT=${PORT:-29500}
+PORT=${PORT:-29501}
 N_GPUS=${N_GPUS:-1} # change to your number of GPUs
 
 OPTIM=adamw
@@ -19,9 +19,9 @@ T_MAX=50
 loss=nrmse
 attn=scse
 data_dir=./data
-chkps_dir=./arch_exp
+chkps_dir=./models/Model_veg_indices
 
-backbone=convnext_large_in22k
+backbone=tf_efficientnetv2_xl_in21k
 BS=2
 FOLD=0
 
@@ -46,7 +46,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --batch-size "${BS}" \
         --augs \
         --dec-attn-type $attn \
-        --dec-channels 384 368 352 336 320 \
+        --dec-channels 512 448 384 320 256 \
         --fp16 \
 
 
@@ -77,7 +77,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --load $CHECKPOINT_LOAD/model_last.pth \
         --augs \
         --dec-attn-type $attn \
-        --dec-channels 384 368 352 336 320 \
+        --dec-channels 512 448 384 320 256 \
         --fp16 \
 
 
@@ -106,7 +106,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --load $CHECKPOINT_LOAD/model_last.pth \
         --augs \
         --dec-attn-type $attn \
-        --dec-channels 384 368 352 336 320 \
+        --dec-channels 512 448 384 320 256 \
         --fp16 \
         --ft \
 
@@ -134,6 +134,6 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
 	--load $CHECKPOINT_LOAD/model_last.pth \
         --augs \
         --dec-attn-type $attn \
-        --dec-channels 384 368 352 336 320 \
+        --dec-channels 512 448 384 320 256 \
         --fp16 \
         --ft \
