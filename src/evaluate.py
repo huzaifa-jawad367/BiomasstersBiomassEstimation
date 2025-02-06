@@ -10,7 +10,7 @@ LIST_OF_FILES = os.listdir('data/test_agbm')
 # def draw_difference_
 
 def save_image(file_name):
-    pred_file = f"pred2/{file_name}"  # Replace with your TIFF file path
+    pred_file = f"pred_50ep/{file_name}"  # Replace with your TIFF file path
     gt_file = f"data/test_agbm/{file_name}"
 
     # Convert TIFF to PNG
@@ -51,7 +51,7 @@ def evaluate_rmse_mae(LIST_OF_GT):
     for f in LIST_OF_GT:
         with Image.open(f"data/test_agbm/{f}") as img:
             raster_gt = np.array(img)
-        with Image.open(f"pred2/{f}") as img:
+        with Image.open(f"pred_50ep/{f}") as img:
             raster_pred = np.array(img)
 
         rmse += np.sqrt(np.sum(np.square(np.subtract(raster_gt, raster_pred)))/norm_val)

@@ -18,7 +18,7 @@ s1_max = np.array([ 29 ,  28,  30,  22 ], dtype="float32")
 s1_mm = s1_max - s1_min
 
 s2_max = np.array(
-    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 1., 10316., 1., 8406., 1., 1., 1., 255.],
+    [19616., 18400., 17536., 17097., 16928., 16768., 16593., 16492., 15401., 15226., 1., 10316., 8406., 1., 255.],
     dtype="float32",
 )
 
@@ -67,8 +67,9 @@ def calculate_veg_indices_uint8(img_s2):
     # EVI - Enhanced Vegetation Index
     evi = np.array(multispectral.evi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2], img_s2_xr[:, :, 0]))
     
-    # SAVI - Soil-Adjusted Vegetation Index
-    savi = np.array(multispectral.savi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2]))
+    # Removing SAVI due to irrelevance
+    # # SAVI - Soil-Adjusted Vegetation Index
+    # savi = np.array(multispectral.savi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2]))
     
     # # MSAVI - Modified Soil-Adjusted Vegetation Index
     # msavi = multispectral.msavi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 2])
@@ -81,11 +82,12 @@ def calculate_veg_indices_uint8(img_s2):
     # NDMI - Normalized Difference Moisture Index
     ndmi = np.array(multispectral.ndmi(img_s2_xr[:, :, 6], img_s2_xr[:, :, 7]))
     
-    # NBR - Normalized Burn Ratio
-    nbr = np.array(multispectral.nbr(img_s2_xr[:, :, 6], img_s2_xr[:, :, 8]))
+    # Remove NBR because of irrelevance
+    # # NBR - Normalized Burn Ratio
+    # nbr = np.array(multispectral.nbr(img_s2_xr[:, :, 6], img_s2_xr[:, :, 8]))
     
-    # NBR2 - Another variation of Normalized Burn Ratio
-    nbr2 = np.array(multispectral.nbr2(img_s2_xr[:, :, 7], img_s2_xr[:, :, 8]))
+    # # NBR2 - Another variation of Normalized Burn Ratio
+    # nbr2 = np.array(multispectral.nbr2(img_s2_xr[:, :, 7], img_s2_xr[:, :, 8]))
 
     # Normalize indices to [0, 255] and convert to uint8
     def normalize_and_convert(index):
@@ -97,11 +99,11 @@ def calculate_veg_indices_uint8(img_s2):
     indices_uint8 = {
         "ndvi": normalize_and_convert(ndvi),
         "evi": normalize_and_convert(evi),
-        "savi": normalize_and_convert(savi),
+        # "savi": normalize_and_convert(savi),
         "msavi": normalize_and_convert(msavi),
         "ndmi": normalize_and_convert(ndmi),
-        "nbr": normalize_and_convert(nbr),
-        "nbr2": normalize_and_convert(nbr2),
+        # "nbr": normalize_and_convert(nbr),
+        # "nbr2": normalize_and_convert(nbr2),
     }
 
     return indices_uint8
@@ -143,7 +145,7 @@ def read_imgs(chip_id, data_dir, veg_indices=False):
             # print(f"After Normalisation: {np.max(img_s2)}")
             
         else:
-            img_s2 = np.zeros(IMG_SIZE + (18,), dtype="float32")
+            img_s2 = np.zeros(IMG_SIZE + (15,), dtype="float32")
             # img_s2 = np.zeros(IMG_SIZE + (11,), dtype="float32")
 
         img = np.concatenate([img_s1, img_s2], axis=2)

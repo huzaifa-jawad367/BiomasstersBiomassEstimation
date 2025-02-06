@@ -19,7 +19,7 @@ T_MAX=50
 loss=nrmse
 attn=scse
 data_dir=./data
-chkps_dir=./models/Model_veg_indices
+chkps_dir=./models/Model_veg_indices_2
 
 backbone=tf_efficientnetv2_xl_in21k
 BS=2
@@ -33,7 +33,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 22 \
+        --in-channels 19 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -63,7 +63,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 22 \
+        --in-channels 19 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -92,7 +92,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 22 \
+        --in-channels 19 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
@@ -120,7 +120,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --train-labels-dir $data_dir/train_agbm \
         --backbone "${backbone}" \
         --loss "${loss}" \
-        --in-channels 22 \
+        --in-channels 19 \
         --optim "${OPTIM}" \
         --learning-rate "${LR}" \
         --weight-decay "${WD}" \
