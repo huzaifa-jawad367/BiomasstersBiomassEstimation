@@ -171,7 +171,7 @@ def epoch_step_train(loader, desc, model, criterion, optimizer, scaler, fp16=Fal
         pbar = tqdm.tqdm(total=len(loader), desc=desc, leave=False, mininterval=2)
 
     loc_loss = n = 0
-    for images, mask, target in loader:
+    for i, (images, mask, target) in enumerate(loader):
         images = images.cuda(local_rank, non_blocking=True)
         mask = mask.cuda(local_rank, non_blocking=True)
         target = target.cuda(local_rank, non_blocking=True)
@@ -179,23 +179,23 @@ def epoch_step_train(loader, desc, model, criterion, optimizer, scaler, fp16=Fal
         with torch.cuda.amp.autocast(enabled=fp16):
             logits = model(images, mask)
             loss = criterion(logits, target)
-            # loss = loss / grad_accum
+            loss = loss / grad_accum
 
         scaler.scale(loss).backward()
 
-        #if i % grad_accum == 0 or i == len(loader):
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(
-            model.parameters(),
-            max_norm=5.0,
-            # error_if_nonfinite=True,
-        )
-        scaler.step(optimizer)
-        scaler.update()
-        optimizer.zero_grad(set_to_none=True)
+        if (i+1) % grad_accum == 0 or (i+1) == len(loader):
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                max_norm=5.0,
+                error_if_nonfinite=True,
+            )
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad(set_to_none=True)
 
         bs = target.size(0)
-        loc_loss += loss.item() * bs# * grad_accum
+        loc_loss += loss.item() * bs * grad_accum
         n += bs
 
         torch.cuda.synchronize()

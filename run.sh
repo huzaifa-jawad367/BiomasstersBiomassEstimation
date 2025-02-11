@@ -3,9 +3,9 @@
 
 set -eu  # o pipefail
 
-GPU=${GPU:-0}
+GPU=${GPU:-0,1}
 PORT=${PORT:-29501}
-N_GPUS=${N_GPUS:-1} # change to your number of GPUs
+N_GPUS=${N_GPUS:-2} # change to your number of GPUs
 
 OPTIM=adamw
 LR=0.001
@@ -48,6 +48,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --dec-attn-type $attn \
         --dec-channels 512 448 384 320 256 \
         --fp16 \
+        --grad-accum 2 \
 
 
 LR=0.0001
@@ -79,6 +80,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --dec-attn-type $attn \
         --dec-channels 512 448 384 320 256 \
         --fp16 \
+        --grad-accum 2 \
 
 
 N_EPOCHS=50
@@ -109,6 +111,7 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --dec-channels 512 448 384 320 256 \
         --fp16 \
         --ft \
+        --grad-accum 2 \
 
 
 CHECKPOINT_LOAD=$chkps_dir/"${backbone}"_f"${FOLD}"_b"${BS}"x"${N_GPUS}"_e"${N_EPOCHS}"_"${loss}"_devscse_attnlin_augs_decplus7_plus800eb_100ft
@@ -137,3 +140,4 @@ MASTER_PORT="${PORT}" CUDA_VISIBLE_DEVICES="${GPU}" torchrun --nproc_per_node="$
         --dec-channels 512 448 384 320 256 \
         --fp16 \
         --ft \
+        --grad-accum 2 \
