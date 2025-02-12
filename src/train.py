@@ -188,7 +188,7 @@ def epoch_step_train(loader, desc, model, criterion, optimizer, scaler, fp16=Fal
             torch.nn.utils.clip_grad_norm_(
                 model.parameters(),
                 max_norm=5.0,
-                error_if_nonfinite=True,
+                # error_if_nonfinite=True,
             )
             scaler.step(optimizer)
             scaler.update()

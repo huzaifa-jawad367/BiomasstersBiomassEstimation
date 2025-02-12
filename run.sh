@@ -3,8 +3,8 @@
 
 set -eu  # o pipefail
 
-GPU=${GPU:-0,1}
-PORT=${PORT:-29501}
+GPU=${GPU:-0, 1}
+PORT=${PORT:-29500}
 N_GPUS=${N_GPUS:-2} # change to your number of GPUs
 
 OPTIM=adamw
