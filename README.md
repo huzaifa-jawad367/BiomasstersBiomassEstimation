@@ -1,13 +1,9 @@
 # The BioMassters
 
-[The
-BioMassters](https://www.drivendata.org/competitions/99/biomass-estimation/page/534/)
+These are Encoder decoder segmentation models that are run on SITS dataset called Biomassters. This dataset contains sentinel-1 and sentinel-2 data over 12 months with 12 timesteps. 
 
-[1st
-place](https://www.drivendata.org/competitions/99/biomass-estimation/leaderboard/)
-out of 976 participants with 27.6280 Average RMSE score (top2 27.6779).
+The best performing model yet is the UNET with Temporal attention. I augmented the UTAE model with added vegetation indices and increased the encoder size the improve the results. 
 
-![](./assets/private.png)
 
 ## Approach
 
@@ -87,4 +83,5 @@ sh ./submit.sh
 
 It takes ~5 minutes on 1 GPU A100 40GB (note on V100 32GB the results are
 slightly different).
+
 # BiomasstersBiomassEstimation
