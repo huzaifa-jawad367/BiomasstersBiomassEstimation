@@ -1,12 +1,11 @@
 the-biomassters
-preds/*
-pred2/*
+predictions/*
 data/*
 models/*
 reports/
 models.zip
-pred_50ep/
 arch_exp/
 src/__pycache__
 vmunetv2/
 DeepSatModels/
+error_maps/*
